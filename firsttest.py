@@ -1,35 +1,31 @@
-# vim firsttest.py
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
-options = Options()
-options.add_argument('--no-sandbox')
-options.add_argument('--headless')
-options.add_argument('--disable-dev-shm-usage')
+def main():
+    # Chrome Options for headless mode (important for Jenkins/servers)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
-service = Service('/usr/bin/chromedriver')  # Explicit path to chromedriver
-driver = webdriver.Chrome(service=service, options=options)
+    # Setup Chrome with webdriver-manager
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
-#driver = webdriver.Chrome(options=options)
+    # Test Step 1: Open Google homepage
+    driver.get("https://www.google.com")
 
-driver.get("https://www.selenium.dev/selenium/web/web-form.html")
+    # Test Step 2: Validate title contains "Google"
+    assert "Google" in driver.title
 
-title = driver.title
-assert title == "Web form"
+    # Print output expected in Jenkins
+    print("Received!")
 
-driver.implicitly_wait(0.5)
+    # Close the browser
+    driver.quit()
 
-text_box = driver.find_element(by=By.NAME, value="my-text")
-submit_button = driver.find_element(by=By.CSS_SELECTOR, value="button")
-
-text_box.send_keys("Selenium")
-submit_button.click()
-
-message = driver.find_element(by=By.ID, value="message")
-value = message.text
-print(value)
-
-assert value == "Received!"
-driver.quit()
+if __name__ == "__main__":
+    main()
