@@ -1,32 +1,47 @@
 pipeline {
     agent any
-    environment {
-        IMAGE_NAME = "selenium-test"
+    parameters {
+        choice(name: 'ACTION', choices: ['Remove Virtualenv', 'Leave Virtualenv'], description: 'What would you like to do with the virtual environment?')
     }
     stages {
-        stage('Build Docker Image') {
+        stage('Setup Virtual Environment') {
             steps {
                 script {
-                    // Build the Docker image
-                    sh '''docker build -t $IMAGE_NAME .
-                          docker images'''                    
+                    // Create and activate virtual environment, install dependencies
+                    sh '''
+                        python3 -m venv my_env
+                        . my_env/bin/activate
+                        pip install --upgrade pip
+                        pip install selenium webdriver-manager
+                    '''
                 }
             }
         }
-    stage('Run Selenium Tests') {
+
+        stage('Run Selenium Tests') {
             steps {
                 script {
-                    // Run the Docker container and execute the tests
-                    // sh 'docker run --rm ${env.IMAGE_NAME}'
-                     sh 'docker run $IMAGE_NAME'
+                    // Activate virtual environment and run the test script
+                    sh '''
+                        . my_env/bin/activate
+                        python firsttest.py
+                    '''
+                }
+            }
+        }
+
+        stage('Decide Action') {
+            steps {
+                script {
+                    // Based on user input, decide whether to remove the virtual environment
+                    if (params.ACTION == 'Remove Virtualenv') {
+                        echo 'Removing virtual environment as per user choice.'
+                        sh 'rm -rf my_env'
+                    } else {
+                        echo 'Leaving virtual environment intact.'
+                    }
                 }
             }
         }
     }
-     post {
-            always {
-                // Cleanup: remove any unused images, volumes, etc.
-                sh 'docker system prune -af'
-            }
-        }
 }
