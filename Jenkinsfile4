@@ -3,6 +3,7 @@ pipeline {
   stages {
     stage('Test') {
       steps {
+        source venv/bin/activate
         sh 'python3 TestScriptMay092025.py'
       }
     }
