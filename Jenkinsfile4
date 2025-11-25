@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        sh 'python3 FirstTestScript.py'
+        sh 'python3 TestScriptMay092025.py'
       }
     }
 }
